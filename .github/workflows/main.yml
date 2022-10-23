@@ -15,7 +15,6 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           user: ${{ secrets.SSH_USER }}
           pass: ${{ secrets.SSH_PASSWORD }}
-          first_ssh: pkill -f node
           scp: |
             '.' => /home/centos/demeter/
           last_ssh: npm start
