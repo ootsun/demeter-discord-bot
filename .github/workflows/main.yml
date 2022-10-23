@@ -11,14 +11,10 @@ jobs:
       - uses: actions/checkout@v3
       - name: ssh-scp-ssh-pipelines
         uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
-        env:
-          ssh_host: ${{ secrets.SSH_HOST }}
-          ssh_user: ${{ secrets.SSH_USER }}
-          ssh_password: ${{ secrets.SSH_PASSWORD }}
         with:
-          host: $ssh_host
-          user: $ssh_user
-          pass: $ssh_password
+          host: ${{ secrets.SSH_HOST }}
+          user: ${{ secrets.SSH_USER }}
+          pass: ${{ secrets.SSH_PASSWORD }}
           first_ssh: pkill -f node
           scp: |
             '.' => /home/centos/demeter/
