@@ -84,6 +84,8 @@ export const COMMANDS_NAME = {
             MIN_IN_FAVOR_MEMBERS: {name: 'twitter-min-in-favor-members'},
             ACCESS_TOKEN: {name: 'twitter-access-token'},
             REFRESH_TOKEN: {name: 'twitter-refresh-token'},
+            OAUTH2_CLIENT_ID: {name: 'twitter-oauth2-client-id'},
+            OAUTH2_CLIENT_SECRET: {name: 'twitter-oauth2-client-secret'},
         },
         DB_URL: { name: 'db-url'}
     },
@@ -450,6 +452,16 @@ export const COMMANDS = [
                         type: ApplicationCommandOptionTypes.STRING,
                         name: COMMANDS_NAME.GUILD.CONFIG_TWITTER.REFRESH_TOKEN.name,
                         description: 'The refresh token that will be used to authenticate against the Twitter API v2',
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.STRING,
+                        name: COMMANDS_NAME.GUILD.CONFIG_TWITTER.OAUTH2_CLIENT_ID.name,
+                        description: 'The oauth2 client id that will be used to authenticate against the Twitter API v2',
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.STRING,
+                        name: COMMANDS_NAME.GUILD.CONFIG_TWITTER.OAUTH2_CLIENT_SECRET.name,
+                        description: 'The oauth2 client secret that will be used to authenticate against the Twitter API v2',
                     }
                 ]
             },

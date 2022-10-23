@@ -509,6 +509,38 @@ export const setTwitterRefreshToken = async (token, guildUuid, db, mutex) => bas
     }, db, mutex)
 
 /**
+ * Update the Twitter Oauth2 client id used to authenticate against the Twitter API v2
+ * @param twitterOauth2ClientId - Twitter Oauth2 client id
+ * @param guildUuid - Guild unique identifier
+ * @param db - In-memory database
+ * @param mutex - Mutex to access the database safely
+ * @returns {Promise<boolean>}
+ */
+export const setTwitterOauth2ClientId = async (twitterOauth2ClientId, guildUuid, db, mutex) => basicSetter(
+    guildUuid,
+    async () => true,
+    async (guildDb) => {
+        guildDb.config.twitterOauth2ClientId = encrypt(twitterOauth2ClientId)
+        return guildDb
+    }, db, mutex)
+
+/**
+ * Update the Twitter Oauth2 client secret used to authenticate against the Twitter API v2
+ * @param twitterOauth2ClientSecret - Twitter Oauth2 client secret
+ * @param guildUuid - Guild unique identifier
+ * @param db - In-memory database
+ * @param mutex - Mutex to access the database safely
+ * @returns {Promise<boolean>}
+ */
+export const setTwitterOauth2ClientSecret = async (twitterOauth2ClientSecret, guildUuid, db, mutex) => basicSetter(
+    guildUuid,
+    async () => true,
+    async (guildDb) => {
+        guildDb.config.twitterOauth2ClientSecret = encrypt(twitterOauth2ClientSecret)
+        return guildDb
+    }, db, mutex)
+
+/**
  * Initialize the guild
  * @param guildDiscordId - Guild discord id
  * @param db - in-memory database
@@ -729,6 +761,12 @@ export const configGuild = async (interaction, guildUuid, db, mutex) => {
         const twitterRefreshToken = optionsTwitter?.find(o => o?.name === COMMANDS_NAME.GUILD.CONFIG_TWITTER.REFRESH_TOKEN.name)?.value
         if (twitterRefreshToken)
             await setTwitterRefreshToken(twitterRefreshToken, guildUuid, db, mutex)
+        const twitterOauth2ClientId = optionsTwitter?.find(o => o?.name === COMMANDS_NAME.GUILD.CONFIG_TWITTER.OAUTH2_CLIENT_ID.name)?.value
+        if (twitterOauth2ClientId)
+            await setTwitterOauth2ClientId(twitterOauth2ClientId, guildUuid, db, mutex)
+        const twitterOauth2ClientSecret = optionsTwitter?.find(o => o?.name === COMMANDS_NAME.GUILD.CONFIG_TWITTER.OAUTH2_CLIENT_SECRET.name)?.value
+        if (twitterOauth2ClientSecret)
+            await setTwitterOauth2ClientSecret(twitterOauth2ClientSecret, guildUuid, db, mutex)
 
         await interaction
             ?.reply({content: response || 'Done !', ephemeral: true})

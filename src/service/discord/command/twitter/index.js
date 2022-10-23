@@ -3,8 +3,6 @@ import logger from '../../../core/winston/index.js';
 import Moment from 'moment';
 import {
     formatTweetsForProposal,
-    getTwitterOauth2ClientIdFor,
-    getTwitterOauth2ClientSecretFor
 } from '../../util/helper.js';
 import {makeDiscord} from "../../data/index.js";
 import {MessageMentions} from 'discord.js';
@@ -104,20 +102,20 @@ const proposeTwitterPost = async (interaction, guildUuid, db, mutex, client) => 
             return true
         }
 
-        if (!getTwitterOauth2ClientIdFor(guildUuid)) {
+        if (!db.data[guildUuid].config.twitterOauth2ClientId) {
             await interaction
                 ?.reply({
-                    content: 'This feature is disabled. Ask a technical admin to configure the environment variable TWITTER_OAUTH2_CLIENT_ID_YOURGUILDUUID !',
+                    content: 'This feature is disabled. Configure Twitter Oauth2 client id to enable it !',
                     ephemeral: true
                 })
                 ?.catch(() => logger.error('Reply interaction failed.'))
             return true
         }
 
-        if (!getTwitterOauth2ClientSecretFor(guildUuid)) {
+        if (!db.data[guildUuid].config.twitterOauth2ClientSecret) {
             await interaction
                 ?.reply({
-                    content: 'This feature is disabled. Ask a technical admin to configure the environment variable TWITTER_OAUTH2_CLIENT_SECRET_YOURGUILDUUID !',
+                    content: 'This feature is disabled. Configure Twitter Oauth2 client secret to enable it !!',
                     ephemeral: true
                 })
                 ?.catch(() => logger.error('Reply interaction failed.'))

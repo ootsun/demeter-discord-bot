@@ -2,8 +2,6 @@ import logger from "../winston/index.js";
 import {TwitterApiAutoTokenRefresher} from "@twitter-api-v2/plugin-token-refresher";
 import {
     formatTweetsForProposal,
-    getTwitterOauth2ClientIdFor,
-    getTwitterOauth2ClientSecretFor
 } from "../../discord/util/helper.js";
 import {TwitterApi} from "twitter-api-v2";
 import Moment from "moment";
@@ -42,8 +40,8 @@ const getClientFor = (guildUuid, db) => {
         const autoRefresherPlugin = new TwitterApiAutoTokenRefresher({
             refreshToken: decrypt(db.data[guildUuid].config.twitterRefreshToken),
             refreshCredentials: {
-                clientId: getTwitterOauth2ClientIdFor(guildUuid),
-                clientSecret: getTwitterOauth2ClientSecretFor(guildUuid)
+                clientId: decrypt(db.data[guildUuid].config.twitterOauth2ClientId),
+                clientSecret: decrypt(db.data[guildUuid].config.twitterOauth2ClientSecret)
             },
             onTokenUpdate: (token) => {
                 db.data[guildUuid].config.twitterAccessToken = encrypt(token.accessToken)

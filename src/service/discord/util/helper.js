@@ -9,24 +9,6 @@ export const isPoHEnabled = (guildDb) => {
 }
 
 /**
- * Return TWITTER_OAUTH2_CLIENT_ID env variable for a given guild
- * @param guildUuid - Guild unique identifier
- * @returns {string}
- */
-export const getTwitterOauth2ClientIdFor = (guildUuid) => {
-  return process.env['TWITTER_OAUTH2_CLIENT_ID_' + guildUuid]
-}
-
-/**
- * Return TWITTER_OAUTH2_CLIENT_SECRET env variable for a given guild
- * @param guildUuid - Guild unique identifier
- * @returns {string}
- */
-export const getTwitterOauth2ClientSecretFor = (guildUuid) => {
-  return process.env['TWITTER_OAUTH2_CLIENT_SECRET_' + guildUuid]
-}
-
-/**
  * Return post content based on a given array of tweets
  * @param tweets - The Array of tweets
  * @returns {string}
