@@ -4,18 +4,36 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: ssh-scp-ssh-pipelines
-        uses: cross-the-world/ssh-scp-ssh-pipelines@v1.1.4
+      - name: pre-ssh
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
-          user: ${{ secrets.SSH_USER }}
-          pass: ${{ secrets.SSH_PASSWORD }}
-          scp: |
-            '.' => /home/centos/demeter/
-          last_ssh: npm start
-      
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            pkill -f node 2>&1 > /dev/null
+      - name: scp-skip-images
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          source: "src,package.json"
+          target: "/home/centos/demeter"
+      - name: post-ssh
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            cd demeter
+            npm install
+            npm start
+            
