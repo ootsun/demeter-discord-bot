@@ -47,7 +47,7 @@ const logger = createLogger({
                 datePattern: 'YYYY-MM-DD',
                 maxFiles: '31d',
                 prepend: true,
-                level: 'LOG_LEVEL'
+                level: LOG_LEVEL
             }),
         ]
 })
