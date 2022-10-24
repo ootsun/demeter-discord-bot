@@ -17,25 +17,9 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            pkill -f node 2>&1 > /dev/null
-      - name: scp-skip-images
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "src,package.json"
-          target: "/home/centos/demeter"
-      - name: post-ssh
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd demeter
-            npm install
-            npm start
+            cd ~/centos/demeter-discord-bot
+            git pull origin master
+            git status
+            npm install --omit=dev
+            pm2 restart demeter-discord-bot
             
