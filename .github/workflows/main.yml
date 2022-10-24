@@ -1,0 +1,24 @@
+name: Main workflow - deploy latest
+run-name: ${{ github.event.head_commit.author.name }} - ${{ github.event.head_commit.message }}
+on: 
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /home/centos/demeter-discord-bot
+            git pull origin master
+            git status
+            npm install --omit=dev
+            pm2 restart demeter-discord-bot
+            
