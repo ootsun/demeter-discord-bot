@@ -19,7 +19,6 @@ const logger = createLogger({
         format.errors({stack: true}),
         format.splat(),
         format.json(),
-        format.colorize(),
         format.printf(
             (info) =>
                 `${info.timestamp} [${info.level}] ${info.message}`
