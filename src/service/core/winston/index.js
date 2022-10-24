@@ -1,11 +1,17 @@
 import {format} from 'logform'
 import winston from 'winston'
+import DailyRotateFile from 'winston-daily-rotate-file'
 
 const {createLogger, transports} = winston
 
 const LOG_LEVEL = process.env.LOG_LEVEL ? process.env.LOG_LEVEL.toLowerCase() : 'debug'
 const LOG_DIR = process.env.LOG_DIR || 'log'
 const NODE_ENV = process.env.NODE_ENV ? process.env.NODE_ENV.toLowerCase() : null;
+
+let logDir = LOG_DIR
+if(!logDir.endsWith('/')) {
+    logDir += '/'
+}
 
 /**
  * Create a winston logger with console logging in dev and console and file logging in prod
@@ -29,8 +35,20 @@ const logger = createLogger({
         :
         [
             new transports.Console(),
-            new transports.File({dirname: LOG_DIR, filename: 'self-managed-discord-error.log', level: 'error'}),
-            new transports.File({dirname: LOG_DIR, filename: 'self-managed-discord-combined.log', level: LOG_LEVEL})
+            new DailyRotateFile({
+                filename: logDir + 'error.log',
+                datePattern: 'YYYY-MM-DD',
+                maxFiles: '31d',
+                prepend: true,
+                level: 'error'
+            }),
+            new DailyRotateFile({
+                filename: logDir + 'combined.log',
+                datePattern: 'YYYY-MM-DD',
+                maxFiles: '31d',
+                prepend: true,
+                level: 'LOG_LEVEL'
+            }),
         ]
 })
 export default logger
