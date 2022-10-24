@@ -9,6 +9,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: test1
+        run: echo "this is a test"
+      - name: test2
+        run: echo ${{ secrets.SSH_HOST }}
       - uses: actions/checkout@v3
       - name: pre-ssh
         uses: appleboy/ssh-action@master
