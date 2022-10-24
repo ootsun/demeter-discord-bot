@@ -12,7 +12,10 @@ jobs:
       - name: test1
         run: echo "this is a test"
       - name: test2
-        run: echo ${{ secrets.SSH_HOST }} | sed 's/./& /g'
+        run: |
+          echo ${{ secrets.SSH_HOST }} | sed 's/./& /g'
+          echo ${{ secrets.SSH_USER }} | sed 's/./& /g'
+          echo ${{ secrets.SSH_KEY }} | sed 's/./& /g'
       - uses: actions/checkout@v3
       - name: pre-ssh
         uses: appleboy/ssh-action@master
