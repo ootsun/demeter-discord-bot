@@ -2,7 +2,7 @@
   "name": "self-managed-discord",
   "version": "0.0.1",
   "description": "Discord bot allowing the setting up of a self-managed community",
-  "main": "src/index.js",
+  "main": "src/bot.js",
   "repository": {
     "url": "https://github.com/vanmoortel/self-managed-discord",
     "type": "git"
