@@ -39,14 +39,12 @@ const logger = createLogger({
                 filename: logDir + 'error.log',
                 datePattern: 'YYYY-MM-DD',
                 maxFiles: '31d',
-                prepend: true,
                 level: 'error'
             }),
             new DailyRotateFile({
                 filename: logDir + 'combined.log',
                 datePattern: 'YYYY-MM-DD',
                 maxFiles: '31d',
-                prepend: true,
                 level: LOG_LEVEL
             }),
         ]
