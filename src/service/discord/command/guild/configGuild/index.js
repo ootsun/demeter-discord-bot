@@ -203,7 +203,11 @@ export const setReactionRole = async (message, reaction, role, guildUuid, db, mu
 
         const regex = /<:(.*):\d+>|(.)/gm
         let emoji = reaction.replace(regex, '$1') || reaction.replace(regex, '$2')
-        guildDb.reactionRoles[messageId] = {[emoji]: role}
+        if (guildDb.reactionRoles[messageId]) {
+            guildDb.reactionRoles[messageId][emoji] = role
+        } else {
+            guildDb.reactionRoles[messageId] = {[emoji]: role}
+        }
 
         return guildDb
     }, db, mutex)
