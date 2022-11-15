@@ -16,7 +16,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /home/centos/demeter-discord-bot
+            cd /home/centos/dev/demeter-discord-bot
             git pull origin master
             git status
             npm install --omit=dev
