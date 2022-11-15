@@ -232,7 +232,7 @@ const splitContentIntoTweets = (content, tweets = []) => {
         const lastNewLineIndex = slice.lastIndexOf('\n')
         let tweet;
         let remainingContent;
-        const indexOfLinkThatWillBeCut = indexOfLinkThatWillBeCut(content);
+        const indexOfLinkThatWillBeCut = getIndexOfLinkThatWillBeCut(content);
         if(lastNewLineIndex > -1) {
             tweet = slice.slice(0, lastNewLineIndex)
             remainingContent = content.slice(lastNewLineIndex)
@@ -250,7 +250,7 @@ const splitContentIntoTweets = (content, tweets = []) => {
     return tweets
 }
 
-const indexOfLinkThatWillBeCut = (text) => {
+const getIndexOfLinkThatWillBeCut = (text) => {
     const expressionForUrls = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi
     const regex = new RegExp(expressionForUrls)
 
