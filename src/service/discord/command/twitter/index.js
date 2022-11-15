@@ -6,6 +6,10 @@ import {
 } from '../../util/helper.js';
 import {makeDiscord} from "../../data/index.js";
 import {MessageMentions} from 'discord.js';
+import twitterText from 'twitter-text';
+
+const tweetMaxLength = 280
+const contentCutSuffix = '...'
 
 /**
  *
@@ -222,22 +226,43 @@ const removeMentions = (text, client) => {
 }
 
 const splitContentIntoTweets = (content, tweets = []) => {
-    const tweetMaxLength = 280
-    if(content?.length > tweetMaxLength) {
+    const contentWeightedLength = twitterText.parseTweet(content).weightedLength
+    if(contentWeightedLength > tweetMaxLength) {
         const slice = content.slice(0, tweetMaxLength)
         const lastNewLineIndex = slice.lastIndexOf('\n')
         let tweet;
         let remainingContent;
+        const indexOfLinkThatWillBeCut = indexOfLinkThatWillBeCut(content);
         if(lastNewLineIndex > -1) {
             tweet = slice.slice(0, lastNewLineIndex)
             remainingContent = content.slice(lastNewLineIndex)
+        } else if(indexOfLinkThatWillBeCut < 0) {
+            tweet = slice.slice(0, tweetMaxLength - contentCutSuffix.length) + contentCutSuffix
+            remainingContent = content.slice(tweetMaxLength - contentCutSuffix.length)
         } else {
-            tweet = slice.slice(0, tweetMaxLength - 3) + '...'
-            remainingContent = content.slice(tweetMaxLength - 3)
+            tweet = slice.slice(0, indexOfLinkThatWillBeCut) + contentCutSuffix
+            remainingContent = content.slice(indexOfLinkThatWillBeCut)
         }
         tweets.push(tweet)
         return splitContentIntoTweets(remainingContent, tweets)
     }
     tweets.push(content)
     return tweets
+}
+
+const indexOfLinkThatWillBeCut = (text) => {
+    const expressionForUrls = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi
+    const regex = new RegExp(expressionForUrls)
+
+    const contentKeptLength = tweetMaxLength - contentCutSuffix.length;
+    const matches = text.matchAll(regex);
+    for(let match of matches) {
+        // eg.: If contentKeptLength == 20 and text == Hello https://ethereum.org
+        // Then match['index'] == 6 and match[0].length == 20
+        // So 6 - 20 + 20 > 0
+        if(match['index'] - contentKeptLength + match[0].length > 0) {
+            return match['index']
+        }
+    }
+    return -1
 }
