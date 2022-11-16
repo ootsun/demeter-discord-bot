@@ -34,6 +34,7 @@ const printCaptchaImage = async (interaction, failed, salt, noiseImg, successQty
     try {
         if (!skipCheck && !failed && interaction.customId !== BUTTON_CAPTCHA.VERIFY.customId) return false
 
+        await interaction?.deferReply()
         salt[interaction.member.id] = uuidv4()
         let emojiSimpleList = await fsPromises.readdir('./images/emoji')
         emojiSimpleList = emojiSimpleList.filter(p => !p.includes('-'))
@@ -107,7 +108,7 @@ const printCaptchaImage = async (interaction, failed, salt, noiseImg, successQty
         const buffer = await new Promise((res) => captchaImg
             .getBuffer(Jimp.MIME_JPEG, (err, buffer) => res(buffer)))
         await interaction
-            ?.reply({
+            ?.editReply({
                 content: failed ? 'Try again...\n\n' : '' + `Please select the emoji you see in the image ${captchaSteps > 1 ? `(${successQty+1}/${captchaSteps})` : ''}:`,
                 ephemeral: true,
                 files: [buffer],
@@ -123,7 +124,7 @@ const printCaptchaImage = async (interaction, failed, salt, noiseImg, successQty
     } catch (e) {
         logger.error(e)
         await interaction
-            ?.reply({content: 'Something went wrong...', ephemeral: true})
+            ?.editReply({content: 'Something went wrong...', ephemeral: true})
             ?.catch(() => logger.error('Reply interaction failed.'))
         return true
     }
