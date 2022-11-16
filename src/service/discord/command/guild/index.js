@@ -14,7 +14,7 @@ const printDbUrl = async (interaction, guildUuid) => {
         if (!interaction?.options?.data
             ?.find(d => d?.name === COMMANDS_NAME.GUILD.DB_URL.name)) return false
 
-        await interaction?.deferReply()
+        await interaction?.deferReply({ ephemeral: true })
             ?.catch(() => logger.error('Defer reply interaction failed.'))
         const lastUploadCid = await retrieveLastUploadCid(false)
         await interaction

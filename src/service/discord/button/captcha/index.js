@@ -34,7 +34,7 @@ const printCaptchaImage = async (interaction, failed, salt, noiseImg, successQty
     try {
         if (!skipCheck && !failed && interaction.customId !== BUTTON_CAPTCHA.VERIFY.customId) return false
 
-        await interaction?.deferReply()
+        await interaction?.deferReply({ ephemeral: true })
         salt[interaction.member.id] = uuidv4()
         let emojiSimpleList = await fsPromises.readdir('./images/emoji')
         emojiSimpleList = emojiSimpleList.filter(p => !p.includes('-'))
