@@ -23,11 +23,9 @@ const logger = createLogger({
             format: 'HH:mm:ss:SSS',
         }),
         format.errors({stack: true}),
-        format.splat(),
-        format.json(),
         format.printf(
             (info) =>
-                `${info.timestamp} [${info.level}] ${info.message}`
+                `${info.timestamp} [${info.level}] ${typeof info.message === 'string' ? info.message : JSON.stringify(info.message)}`
         )
     ),
     transports: NODE_ENV !== 'production' ?
