@@ -87,7 +87,15 @@ export const checkEndTwitterProposal = async (db, mutex, discord) => {
                     }
                     const proposalMessage = await channel?.messages
                         ?.fetch(proposalId)
-                        ?.catch(() => null)
+                        ?.catch((e) => {
+                            if(e.code === 10008) {
+                                logger.debug(`Deleting proposalId='${proposalId}' as the message has been deleted`)
+                                delete proposals[proposalId]
+                            } else {
+                                logger.error(e)
+                            }
+                            return null;
+                        })
                     if (!proposalMessage) {
                         logger.error(`Could not retrieve Twitter post proposal (proposalId=${proposalId}, guildUuid=${guildUuid})`)
                         continue
