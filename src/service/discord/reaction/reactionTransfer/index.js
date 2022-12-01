@@ -60,7 +60,7 @@ export const transferMessage = async (messageReaction, user, isRemove, guildUuid
 
         const files = message?.attachments && message?.attachments?.size ?  [...message?.attachments?.values()] : null
         await channel
-            ?.send({content: `${message?.author} (transferred by the community) :\n${message?.content}`, files})
+            ?.send({content: `${message?.author} (transferred by the community) :\n${message.content}`, files, allowedMentions: { parse: ['users'] }})
             ?.catch(() => logger.error('Failed to transfer message.'))
 
         if (reactionTransferChannelConfig.deleteMessage === undefined || reactionTransferChannelConfig.deleteMessage === true) {
