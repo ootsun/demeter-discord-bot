@@ -1,6 +1,7 @@
 import {COMMANDS_NAME} from "../index.js";
 import {Permissions} from "discord.js";
 import logger from "../../../core/winston/index.js";
+import {deploySmartAccount} from "../../../core/treasury/index.js";
 
 /**
  * Deploy the treasury contract
@@ -35,9 +36,11 @@ export const deploy = async (interaction, guildUuid, db, mutex) => {
                     ?.reply({content: `There is already a treasury contract deployed on ${treasuryAddress}`, ephemeral: true})
                     ?.catch(() => logger.error('Reply interaction failed.'))
             } else {
-                //TODO Deploy contract
+                await interaction?.deferReply({ ephemeral: true })
+                    ?.catch(() => logger.error('Defer reply interaction failed.'))
+                db.data[guildUuid].treasuryAddress = await deploySmartAccount();
                 await interaction
-                    ?.reply({content: 'Congrats! The treasury contract had been deployed on 0xABC', ephemeral: true})
+                    ?.editReply({content: `Congrats! The treasury contract had been deployed on ${db.data[guildUuid].treasuryAddress}`, ephemeral: true})
             }
         })
 
