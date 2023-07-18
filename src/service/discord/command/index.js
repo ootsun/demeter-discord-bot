@@ -12,6 +12,7 @@ import {processUser} from './user/index.js'
 import {processGiveaway} from "./giveaway/index.js";
 import {processProofOfHumanity} from './proofOfHumanity/index.js';
 import {processTwitter} from './twitter/index.js';
+import {processTreasury} from "./treasury/index.js";
 
 export const COMMANDS_NAME = {
     GUILD: {
@@ -87,7 +88,7 @@ export const COMMANDS_NAME = {
             OAUTH2_CLIENT_ID: {name: 'twitter-oauth2-client-id'},
             OAUTH2_CLIENT_SECRET: {name: 'twitter-oauth2-client-secret'},
         },
-        DB_URL: { name: 'db-url'}
+        DB_URL: {name: 'db-url'}
     },
     ROUND: {
         name: 'round',
@@ -123,7 +124,7 @@ export const COMMANDS_NAME = {
     USER: {
         name: 'user',
 
-        CONFIG:{
+        CONFIG: {
             name: 'config',
 
             APPLY_GUILD_DEFAULT: {name: 'apply-guild-default'},
@@ -139,7 +140,7 @@ export const COMMANDS_NAME = {
         UNMUTE: {
             name: 'unmute',
 
-            USER:{name: 'user'}
+            USER: {name: 'user'}
         }
     },
     REPUTATION: {
@@ -196,7 +197,7 @@ export const COMMANDS_NAME = {
         },
 
     },
-    PROPOSAL:{
+    PROPOSAL: {
         name: 'proposal',
 
         START: {
@@ -209,15 +210,25 @@ export const COMMANDS_NAME = {
         },
         MUTE: {
             name: 'mute',
-            USER: { name: 'user'},
-            DURATION: { name: 'duration'},
-        }
+            USER: {name: 'user'},
+            DURATION: {name: 'duration'},
+        },
+        START_TREASURY: {
+            name: 'start-treasury',
+
+            MESSAGE: {name: 'message'},
+            DURATION: {name: 'duration'},
+            ADDRESS: {name: 'address'},
+            CHAIN: {name: 'chain'},
+            ASSET: {name: 'asset'},
+            ASSET_AMOUNT: {name: 'amount'},
+        },
     },
-    GIVEAWAY:{
+    GIVEAWAY: {
         name: 'giveaway',
 
-        MESSAGE: { name: 'message'},
-        WEIGHTED: { name: 'weighted'},
+        MESSAGE: {name: 'message'},
+        WEIGHTED: {name: 'weighted'},
     },
     POH: {
         name: 'poh',
@@ -251,7 +262,17 @@ export const COMMANDS_NAME = {
     },
     TWITTER_POST: {
         name: 'Tweet with Demeter'
-    }
+    },
+    TREASURY: {
+        name: 'treasury',
+
+        DEPLOY: {
+            name: 'deploy',
+        },
+        PRINT: {
+            name: 'print',
+        },
+    },
 }
 
 export const COMMANDS = [
@@ -382,7 +403,7 @@ export const COMMANDS = [
                         type: ApplicationCommandOptionTypes.BOOLEAN,
                         name: COMMANDS_NAME.GUILD.CONFIG_2.BLACKLIST_USER_ENABLE.name,
                         description: 'Add/remove this user from blacklist',
-                    },{
+                    }, {
                         type: ApplicationCommandOptionTypes.NUMBER,
                         name: COMMANDS_NAME.GUILD.CONFIG_2.POH_VOUCHERS_REWARD.name,
                         description: 'The amount of reputation rewarded to the voucher',
@@ -614,7 +635,7 @@ export const COMMANDS = [
                     type: ApplicationCommandOptionTypes.USER,
                     name: COMMANDS_NAME.REPUTATION.GRANT_LIST.USER.name,
                     description: 'Member to show',
-                },{
+                }, {
                     type: ApplicationCommandOptionTypes.INTEGER,
                     name: COMMANDS_NAME.REPUTATION.GRANT_LIST.ROUND.name,
                     description: 'How much round in the past(0=now)',
@@ -628,7 +649,7 @@ export const COMMANDS = [
                     type: ApplicationCommandOptionTypes.USER,
                     name: COMMANDS_NAME.REPUTATION.GRANT_ADD.USER.name,
                     description: 'Member to grant reputation',
-                },{
+                }, {
                     type: ApplicationCommandOptionTypes.INTEGER,
                     name: COMMANDS_NAME.REPUTATION.GRANT_ADD.AMOUNT.name,
                     description: 'How much to add ?(Automatically modified to not exceed the max)',
@@ -642,7 +663,7 @@ export const COMMANDS = [
                     type: ApplicationCommandOptionTypes.USER,
                     name: COMMANDS_NAME.REPUTATION.GRANT_SET.USER.name,
                     description: 'Member to update grant reputation',
-                },{
+                }, {
                     type: ApplicationCommandOptionTypes.INTEGER,
                     name: COMMANDS_NAME.REPUTATION.GRANT_SET.AMOUNT.name,
                     description: 'How much to grant ?(Automatically modified to not exceed the max)',
@@ -720,6 +741,26 @@ export const COMMANDS = [
                         name: COMMANDS_NAME.PROPOSAL.START.MINT_AMOUNT.name,
                         description: 'How much reputation to mint(>0)'
                     },
+                    {
+                        type: ApplicationCommandOptionTypes.STRING,
+                        name: COMMANDS_NAME.PROPOSAL.START.ADDRESS.name,
+                        description: 'The recipient address'
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.STRING,
+                        name: COMMANDS_NAME.PROPOSAL.START.CHAIN.name,
+                        description: 'The destination chain'
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.STRING,
+                        name: COMMANDS_NAME.PROPOSAL.START.ASSET.name,
+                        description: 'The asset to send'
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.NUMBER,
+                        name: COMMANDS_NAME.PROPOSAL.START.ASSET_AMOUNT.name,
+                        description: 'The amount of asset to send'
+                    },
                 ]
             },
             {
@@ -738,6 +779,55 @@ export const COMMANDS = [
                         name: COMMANDS_NAME.PROPOSAL.MUTE.DURATION.name,
                         description: 'How much minute to mute',
                         required: true
+                    },
+                ]
+            },
+            {
+                type: ApplicationCommandOptionTypes.SUB_COMMAND,
+                name: COMMANDS_NAME.PROPOSAL.START.name,
+                description: 'Start a proposal',
+                options: [
+                    {
+                        type: ApplicationCommandOptionTypes.STRING,
+                        name: COMMANDS_NAME.PROPOSAL.START.MESSAGE.name,
+                        description: 'Proposal\'s message URL',
+                        required: true
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.INTEGER,
+                        name: COMMANDS_NAME.PROPOSAL.START.DURATION.name,
+                        description: 'Proposal\'s duration in days(>0)',
+                        required: true
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.USER,
+                        name: COMMANDS_NAME.PROPOSAL.START.MINT_USER.name,
+                        description: 'User to mint reputation'
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.NUMBER,
+                        name: COMMANDS_NAME.PROPOSAL.START.MINT_AMOUNT.name,
+                        description: 'How much reputation to mint(>0)'
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.STRING,
+                        name: COMMANDS_NAME.PROPOSAL.START.ADDRESS.name,
+                        description: 'The recipient address'
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.STRING,
+                        name: COMMANDS_NAME.PROPOSAL.START.CHAIN.name,
+                        description: 'The destination chain'
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.STRING,
+                        name: COMMANDS_NAME.PROPOSAL.START.ASSET.name,
+                        description: 'The asset to send'
+                    },
+                    {
+                        type: ApplicationCommandOptionTypes.NUMBER,
+                        name: COMMANDS_NAME.PROPOSAL.START.ASSET_AMOUNT.name,
+                        description: 'The amount of asset to send'
                     },
                 ]
             },
@@ -809,6 +899,22 @@ export const COMMANDS = [
     },
     {
         name: COMMANDS_NAME.TWITTER_POST.name, type: 3
+    },
+    {
+        name: COMMANDS_NAME.TREASURY.name,
+        description: 'Manage the server treasury',
+        options: [
+            {
+                type: ApplicationCommandOptionTypes.SUB_COMMAND,
+                name: COMMANDS_NAME.TREASURY.DEPLOY.name,
+                description: 'Deploy the treasury contract',
+            },
+            {
+                type: ApplicationCommandOptionTypes.SUB_COMMAND,
+                name: COMMANDS_NAME.TREASURY.PRINT.name,
+                description: 'Print the treasury assets',
+            },
+        ]
     }
 ]
 
@@ -824,7 +930,7 @@ export const COMMANDS = [
  */
 const processCommand = async (interaction, db, mutex, salt, noiseImg, client) => {
     try {
-        if (interaction.type ===  2)return true
+        if (interaction.type === 2) return true
 
         await db.read()
 
@@ -833,18 +939,19 @@ const processCommand = async (interaction, db, mutex, salt, noiseImg, client) =>
             ?.find(uuid => db?.data[uuid]?.guildDiscordId === interaction?.guildId)
         logger.debug('Get guild uuid done.')
 
-        if(await processGuild(interaction, guildUuid, db, mutex))return true
-        if(await processRound(interaction, guildUuid, db, mutex))return true
-        if(await processUser(interaction, guildUuid, db, mutex))return true
-        if(await processGrant(interaction, guildUuid, db, mutex))return true
-        if(await processReputation(interaction, guildUuid, db, mutex))return true
-        if(await processPrintButton(interaction, guildUuid, db, mutex))return true
-        if(await processProposal(interaction, guildUuid, db, mutex))return true
-        if(await processGiveaway(interaction, guildUuid, db, mutex))return true
-        if(await processProofOfHumanity(interaction, guildUuid, db, mutex))return true
-        if(await processTwitter(interaction, guildUuid, db, mutex, client))return true
+        if (await processGuild(interaction, guildUuid, db, mutex)) return true
+        if (await processRound(interaction, guildUuid, db, mutex)) return true
+        if (await processUser(interaction, guildUuid, db, mutex)) return true
+        if (await processGrant(interaction, guildUuid, db, mutex)) return true
+        if (await processReputation(interaction, guildUuid, db, mutex)) return true
+        if (await processPrintButton(interaction, guildUuid, db, mutex)) return true
+        if (await processProposal(interaction, guildUuid, db, mutex)) return true
+        if (await processGiveaway(interaction, guildUuid, db, mutex)) return true
+        if (await processProofOfHumanity(interaction, guildUuid, db, mutex)) return true
+        if (await processTwitter(interaction, guildUuid, db, mutex, client)) return true
+        if (await processTreasury(interaction, guildUuid, db, mutex)) return true
 
-        if(await processButton(interaction, guildUuid, db, mutex, salt, noiseImg))return true
+        if (await processButton(interaction, guildUuid, db, mutex, salt, noiseImg)) return true
 
     } catch (e) {
         logger.error(e)

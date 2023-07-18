@@ -110,7 +110,8 @@ export const makeGuild = (
     users,
     pohCandidates,
     pohVouchedCandidates,
-    config
+    config,
+    treasuryAddress: null
 })
 
 /**

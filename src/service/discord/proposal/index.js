@@ -4,7 +4,8 @@ import {fetchReaction} from '../util/helperDiscord.js'
 import {findUserUuidByDiscordId} from '../user/index.js'
 
 export const ACTION = {
-    MINT: 'mint'
+    MINT: 'mint',
+    SEND: 'send'
 }
 
 /**
@@ -135,6 +136,8 @@ export const checkEndProposal = async (db, mutex, discord) => {
                                 .mints[action.receiverUuid][proposal.authorUuid] ||= 0
                             db.data[guildUuid].rounds[db.data[guildUuid].rounds.length - 1]
                                 .mints[action.receiverUuid][proposal.authorUuid] += action?.amount
+                        } else if (action?.type === ACTION.SEND) {
+                            //TODO send assets
                         }
                     }
                     logger.debug('Execute actions done.')

@@ -265,6 +265,163 @@ const startMute = async (interaction, guildUuid, db, mutex) => {
 }
 
 /**
+ * Starts a vote to initiate a proposal for sending assets
+ * @param interaction - Discord interaction
+ * @param guildUuid - Guild unique identifier
+ * @param db - in-memory database
+ * @param mutex - Mutex to access database safely
+ * @returns {Promise<boolean>}
+ */
+const startTreasuryProposal = async (interaction, guildUuid, db, mutex) => {
+    try {
+        const options = interaction?.options?.data
+            ?.find(d => d?.name === COMMANDS_NAME.PROPOSAL.START_TREASURY.name)?.options
+        if (!options) return false
+
+        logger.debug('Check if proposal is disabled...')
+        if (!db?.data[guildUuid]?.config?.minReputationToStartProposal
+            || !db?.data[guildUuid]?.config?.minReputationToConfirmProposal
+            || !db?.data[guildUuid]?.config?.channelProposal) {
+            await interaction
+                ?.reply({content: 'Proposal is disabled.', ephemeral: true})
+                ?.catch(() => logger.error('Reply interaction failed.'))
+            return true
+        }
+        logger.debug('Check if proposal is disabled done.')
+
+        const messageUrl = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.MESSAGE.name)?.value || ''
+        const duration = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.DURATION.name)?.value || 1
+        const address = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.ADDRESS.name)?.value
+        const chain = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.CHAIN.name)?.value
+        const asset = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.ASSET.name)?.value
+        const assetAmount = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.ASSET_AMOUNT.name)?.value
+        let messageId = messageUrl?.split('/')
+        const channelId = messageId ? messageId[messageId.length - 2] : ''
+        messageId = messageId ? messageId[messageId.length - 1] : ''
+
+        if (!messageId || !duration || duration < 1) {
+            await interaction
+                ?.reply({content: 'Please provide message url and duration... Also, make sure the message url starts with https://DISCORD_HOSTNAME/...', ephemeral: true})
+                ?.catch(() => logger.error('Reply interaction failed.'))
+            return true
+        }
+
+        if(!address || !chain || !asset || !assetAmount) {
+            await interaction
+                ?.reply({content: 'Please provide address, chain, asset and assetAmount', ephemeral: true})
+                ?.catch(() => logger.error('Reply interaction failed.'))
+            return true
+        }
+
+        logger.debug('Retrieve message and check length...')
+        const channel = await interaction?.guild?.channels
+            ?.fetch(channelId)
+            ?.catch(() => null)
+        const message = await channel?.messages
+            ?.fetch(messageId)
+            ?.catch(() => null)
+        if (!message) {
+            await interaction
+                ?.reply({content: 'Something went wrong...', ephemeral: true})
+                ?.catch(() => logger.error('Reply interaction failed.'))
+            return true
+        }
+        if (message?.content?.length > 1500) {
+            await interaction
+                ?.reply({
+                    content: `Your proposal is too long ${message?.content?.length}/1500 characters.`,
+                    ephemeral: true
+                })
+                ?.catch(() => logger.error('Reply interaction failed.'))
+            return true
+        }
+        logger.debug('Retrieve message and check length done.')
+
+        await mutex.runExclusive(async () => {
+            await db.read()
+
+            logger.debug('Check if not already started...')
+            if (db?.data[guildUuid]?.discordProposals[message.id]) {
+                await interaction
+                    ?.reply({
+                        content: `There is already a vote for this proposal.`,
+                        ephemeral: true
+                    })
+                    ?.catch(() => logger.error('Reply interaction failed.'))
+                return true
+            }
+            logger.debug('Check if not already started done.')
+
+            logger.debug('Post start message...')
+            let startContent = `${message?.content}
+            \n\nThis proposal will be open to vote for ${duration} day(s) and will send ${assetAmount} ${asset} to ${address} on ${chain}
+            \n\nDo you want to start a vote for the following proposal?`
+
+            const startMessage = await channel
+                ?.send(startContent)
+                ?.catch(() => null)
+            if (!startMessage) {
+                await interaction
+                    ?.reply({content: 'Something went wrong...', ephemeral: true})
+                    ?.catch(() => logger.error('Reply interaction failed.'))
+                return true
+            }
+
+            await startMessage
+                ?.react('✅')
+                ?.catch(() => logger.error('Failed to react start proposal.'))
+            await startMessage
+                ?.react('❌')
+                ?.catch(() => logger.error('Failed to react start proposal.'))
+            logger.debug('Post start message done.')
+
+            logger.debug('Retrieve or create sender...')
+            const sender = await checkCreateUserDiscord(message?.author?.id, db?.data[guildUuid], interaction?.guild)
+            if (!sender) {
+                await interaction
+                    ?.reply({content: 'Something went wrong...', ephemeral: true})
+                    ?.catch(() => logger.error('Reply interaction failed.'))
+                return true
+            }
+            db.data[guildUuid].users = {...db?.data[guildUuid]?.users, ...sender}
+            logger.debug('Retrieve or create author sender.')
+
+            logger.debug('Create proposal...')
+            let proposal = makeDiscord.makeDiscordProposal(
+                '',
+                '',
+                Object.keys(sender)[0],
+                duration,
+                startMessage.id,
+            )
+            proposal.actions.push({
+                type: ACTION.SEND,
+                address: address,
+                chain: chain,
+                asset: asset,
+                assetAmount: assetAmount
+            })
+            db.data[guildUuid].discordProposals[message.id] = proposal
+
+            await db.write()
+        })
+        logger.debug('Create proposal done.')
+
+        await interaction
+            ?.reply({content: 'Done.', ephemeral: true})
+            ?.catch(() => logger.error('Reply interaction failed.'))
+
+        return true
+    } catch (e) {
+        logger.error(e)
+        await interaction
+            ?.reply({content: 'Something went wrong...', ephemeral: true})
+            ?.catch(() => logger.error('Reply interaction failed.'))
+        return true
+    }
+}
+
+/**
  *
  * @param interaction - Discord interaction
  * @param guildUuid - Guild unique identifier
@@ -280,6 +437,7 @@ export const processProposal = async (interaction, guildUuid, db, mutex) => {
 
         if (await startProposal(interaction, guildUuid, db, mutex)) return true
         if (await startMute(interaction, guildUuid, db, mutex)) return true
+        if (await startTreasuryProposal(interaction, guildUuid, db, mutex)) return true
 
         return true
     } catch (e) {
