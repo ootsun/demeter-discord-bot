@@ -740,27 +740,7 @@ export const COMMANDS = [
                         type: ApplicationCommandOptionTypes.NUMBER,
                         name: COMMANDS_NAME.PROPOSAL.START.MINT_AMOUNT.name,
                         description: 'How much reputation to mint(>0)'
-                    },
-                    {
-                        type: ApplicationCommandOptionTypes.STRING,
-                        name: COMMANDS_NAME.PROPOSAL.START.ADDRESS.name,
-                        description: 'The recipient address'
-                    },
-                    {
-                        type: ApplicationCommandOptionTypes.STRING,
-                        name: COMMANDS_NAME.PROPOSAL.START.CHAIN.name,
-                        description: 'The destination chain'
-                    },
-                    {
-                        type: ApplicationCommandOptionTypes.STRING,
-                        name: COMMANDS_NAME.PROPOSAL.START.ASSET.name,
-                        description: 'The asset to send'
-                    },
-                    {
-                        type: ApplicationCommandOptionTypes.NUMBER,
-                        name: COMMANDS_NAME.PROPOSAL.START.ASSET_AMOUNT.name,
-                        description: 'The amount of asset to send'
-                    },
+                    }
                 ]
             },
             {
@@ -784,49 +764,39 @@ export const COMMANDS = [
             },
             {
                 type: ApplicationCommandOptionTypes.SUB_COMMAND,
-                name: COMMANDS_NAME.PROPOSAL.START.name,
-                description: 'Start a proposal',
+                name: COMMANDS_NAME.PROPOSAL.START_TREASURY.name,
+                description: 'Start a treasury proposal',
                 options: [
                     {
                         type: ApplicationCommandOptionTypes.STRING,
-                        name: COMMANDS_NAME.PROPOSAL.START.MESSAGE.name,
+                        name: COMMANDS_NAME.PROPOSAL.START_TREASURY.MESSAGE.name,
                         description: 'Proposal\'s message URL',
                         required: true
                     },
                     {
                         type: ApplicationCommandOptionTypes.INTEGER,
-                        name: COMMANDS_NAME.PROPOSAL.START.DURATION.name,
+                        name: COMMANDS_NAME.PROPOSAL.START_TREASURY.DURATION.name,
                         description: 'Proposal\'s duration in days(>0)',
                         required: true
                     },
                     {
-                        type: ApplicationCommandOptionTypes.USER,
-                        name: COMMANDS_NAME.PROPOSAL.START.MINT_USER.name,
-                        description: 'User to mint reputation'
-                    },
-                    {
-                        type: ApplicationCommandOptionTypes.NUMBER,
-                        name: COMMANDS_NAME.PROPOSAL.START.MINT_AMOUNT.name,
-                        description: 'How much reputation to mint(>0)'
-                    },
-                    {
                         type: ApplicationCommandOptionTypes.STRING,
-                        name: COMMANDS_NAME.PROPOSAL.START.ADDRESS.name,
+                        name: COMMANDS_NAME.PROPOSAL.START_TREASURY.ADDRESS.name,
                         description: 'The recipient address'
                     },
                     {
                         type: ApplicationCommandOptionTypes.STRING,
-                        name: COMMANDS_NAME.PROPOSAL.START.CHAIN.name,
+                        name: COMMANDS_NAME.PROPOSAL.START_TREASURY.CHAIN.name,
                         description: 'The destination chain'
                     },
                     {
                         type: ApplicationCommandOptionTypes.STRING,
-                        name: COMMANDS_NAME.PROPOSAL.START.ASSET.name,
+                        name: COMMANDS_NAME.PROPOSAL.START_TREASURY.ASSET.name,
                         description: 'The asset to send'
                     },
                     {
                         type: ApplicationCommandOptionTypes.NUMBER,
-                        name: COMMANDS_NAME.PROPOSAL.START.ASSET_AMOUNT.name,
+                        name: COMMANDS_NAME.PROPOSAL.START_TREASURY.ASSET_AMOUNT.name,
                         description: 'The amount of asset to send'
                     },
                 ]
