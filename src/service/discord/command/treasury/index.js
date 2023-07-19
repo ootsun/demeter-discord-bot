@@ -1,7 +1,7 @@
 import {COMMANDS_NAME} from "../index.js";
 import {Permissions} from "discord.js";
 import logger from "../../../core/winston/index.js";
-import {deploySmartAccount} from "../../../core/treasury/index.js";
+import {deploySmartAccount, summarizeAssets} from "../../../core/treasury/index.js";
 
 /**
  * Deploy the treasury contract
@@ -75,9 +75,9 @@ export const print = async (interaction, guildUuid, db, mutex) => {
                     ?.reply({content: 'There are no treasury address configured yet. Deploy the contract with the command /treasury deploy', ephemeral: true})
                     ?.catch(() => logger.error('Reply interaction failed.'))
             } else {
-                //TODO Fetch assets
+                const assetsSummary = await summarizeAssets(interaction, guildUuid, db)
                 await interaction
-                    ?.reply({content: 'ETH: 10', ephemeral: true})
+                    ?.reply({content: assetsSummary, ephemeral: true})
             }
         })
 
