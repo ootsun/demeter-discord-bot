@@ -77,9 +77,12 @@ export const startProposal = async (messageReaction, user, guildUuid, db, mutex)
             const endDate = Moment(startDate).add(proposal?.duration, 'days')
             let content = messageReaction?.message?.content.split('\n\n').slice(0, -2).join('\n\n')
             const actionMint = proposal?.actions?.find(a =>  a.type === ACTION.MINT)
+            const actionSend = proposal?.actions?.find(a =>  a.type === ACTION.SEND)
 
             if (actionMint)
                 content += `\n\nThis proposal will mint ${actionMint.amount} reputations to <@!${db?.data[guildUuid]?.users[actionMint.receiverUuid]?.discordId}>`
+            else if (actionSend)
+                content += `\n\nThis proposal will send ${actionSend.assetAmount} ${actionSend.asset} to ${actionSend.address} on ${actionSend.chain}`
             content += `\n\nYou have until ${endDate?.format('dddd, MMMM Do YYYY, h:mm a')} to vote.`
 
             await messageReaction?.message
