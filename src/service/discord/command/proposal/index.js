@@ -289,12 +289,12 @@ const startTreasuryProposal = async (interaction, guildUuid, db, mutex) => {
         }
         logger.debug('Check if proposal is disabled done.')
 
-        const messageUrl = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.MESSAGE.name)?.value || ''
-        const duration = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.DURATION.name)?.value || 1
-        const address = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.ADDRESS.name)?.value
-        const chain = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.CHAIN.name)?.value
-        const asset = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.ASSET.name)?.value
-        const assetAmount = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START.ASSET_AMOUNT.name)?.value
+        const messageUrl = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START_TREASURY.MESSAGE.name)?.value || ''
+        const duration = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START_TREASURY.DURATION.name)?.value || 1
+        const address = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START_TREASURY.ADDRESS.name)?.value
+        const chain = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START_TREASURY.CHAIN.name)?.value
+        const asset = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START_TREASURY.ASSET.name)?.value
+        const assetAmount = options?.find(o => o.name === COMMANDS_NAME.PROPOSAL.START_TREASURY.ASSET_AMOUNT.name)?.value
         let messageId = messageUrl?.split('/')
         const channelId = messageId ? messageId[messageId.length - 2] : ''
         messageId = messageId ? messageId[messageId.length - 1] : ''
