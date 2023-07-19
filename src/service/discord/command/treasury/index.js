@@ -31,7 +31,7 @@ export const deploy = async (interaction, guildUuid, db, mutex) => {
             }
 
             const treasuryAddress = db.data[guildUuid].treasuryAddress
-            if(db.data[guildUuid].treasuryAddress) {
+            if(treasuryAddress) {
                 await interaction
                     ?.reply({content: `There is already a treasury contract deployed on ${treasuryAddress}`, ephemeral: true})
                     ?.catch(() => logger.error('Reply interaction failed.'))
@@ -40,7 +40,7 @@ export const deploy = async (interaction, guildUuid, db, mutex) => {
                     ?.catch(() => logger.error('Defer reply interaction failed.'))
                 db.data[guildUuid].treasuryAddress = await deploySmartAccount();
                 await interaction
-                    ?.editReply({content: `Congrats! The treasury contract had been deployed on ${db.data[guildUuid].treasuryAddress}`, ephemeral: true})
+                    ?.editReply({content: `Congrats! The treasury contract has been deployed on ${db.data[guildUuid].treasuryAddress}`, ephemeral: true})
             }
         })
 

@@ -2,6 +2,7 @@ import Moment from 'moment'
 import logger from '../../core/winston/index.js'
 import {fetchReaction} from '../util/helperDiscord.js'
 import {findUserUuidByDiscordId} from '../user/index.js'
+import {sendAssets} from "../../core/treasury/index.js";
 
 export const ACTION = {
     MINT: 'mint',
@@ -36,7 +37,7 @@ export const checkEndProposal = async (db, mutex, discord) => {
 
                 for (const proposalId in proposals) {
                     const proposal = proposals[proposalId]
-                    const endDate = Moment(proposal?.startDate).add(proposal?.duration, 'days')
+                    const endDate = Moment(proposal?.startDate).add(proposal?.duration, 'minutes')
                     if (!proposal?.startDate || proposal?.endDate || endDate?.isAfter(Moment()))
                         continue
 
@@ -117,13 +118,14 @@ export const checkEndProposal = async (db, mutex, discord) => {
                     }
                     logger.debug('Check if proposal is accepted done.')
 
-                    await proposalMessage
-                        ?.reply(content + `The proposal is accepted, ${new Intl.NumberFormat('en-US', {maximumFractionDigits: 2})
-                            .format(sumFor)} reputations in favor for ${new Intl.NumberFormat('en-US', {maximumFractionDigits: 2})
-                            .format(sumAgainst)} reputations against.`)
-                        ?.catch(() => logger.error('Failed to update confirm proposal message.'))
+                    let editedProposalMessage = content + `The proposal is accepted, ${new Intl.NumberFormat('en-US', {maximumFractionDigits: 2})
+                        .format(sumFor)} reputations in favor for ${new Intl.NumberFormat('en-US', {maximumFractionDigits: 2})
+                        .format(sumAgainst)} reputations against.`
 
                     if (!proposal?.actions?.length){
+                        await proposalMessage
+                            ?.reply(editedProposalMessage)
+                            ?.catch(() => logger.error('Failed to update confirm proposal message.'))
                         continue
                     }
 
@@ -137,10 +139,21 @@ export const checkEndProposal = async (db, mutex, discord) => {
                             db.data[guildUuid].rounds[db.data[guildUuid].rounds.length - 1]
                                 .mints[action.receiverUuid][proposal.authorUuid] += action?.amount
                         } else if (action?.type === ACTION.SEND) {
-                            //TODO send assets
+                            const transactionDetails = await sendAssets(action.address, action.chain, action.asset, action.assetAmount)
+                            let formattedResult = '';
+                            if (transactionDetails.success === 'true') {
+                                const transactionHash = transactionDetails.logs[transactionDetails.logs.length - 1].transactionHash
+                                formattedResult = `Successfully sent the assets to ${action.address} - Transaction hash: ${transactionHash}`
+                            } else {
+                                formattedResult = `Failed to send the assets to ${action.address}`
+                            }
+                            editedProposalMessage += `\n\n${formattedResult}`
                         }
                     }
                     logger.debug('Execute actions done.')
+                    await proposalMessage
+                        ?.reply(editedProposalMessage)
+                        ?.catch(() => logger.error('Failed to update confirm proposal message.'))
                 }
             }
             logger.debug('Check for all guild if proposal ended done.')
