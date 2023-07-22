@@ -6,6 +6,8 @@ import {quadraticFunding} from '../../discord/reputation/index.js'
 import {makeCore} from '../data/index.js'
 import {updateReputationRole} from '../../discord/reputation/reputationRole/index.js'
 import {makeRound, makeRoundConfigFromGuildConfig} from '../index.js'
+import {Contract, ethers} from "ethers";
+import {Wallet} from "@ethersproject/wallet";
 
 /**
  * Check if sender is different than receiver and quantity >= 0
@@ -276,6 +278,7 @@ export const checkEndRound = async (db, mutex, discord) => {
                     continue
                 }
 
+                lastRound.startDate = Moment().subtract(1, 'hours')
                 const endDate = Moment(lastRound?.startDate)
                     .add(lastRound?.config?.roundDuration-1, 'days')
                     .endOf('days')
@@ -286,7 +289,11 @@ export const checkEndRound = async (db, mutex, discord) => {
                 logger.debug('Distribute Reputation...')
                 const {users} = await distributeReputation(db?.data[guildUuid], 0, discord)
                 for(const user in db?.data[guildUuid]?.users){
-                    db?.data[guildUuid]?.users[user]?.reputations.push(users[user])
+                    const newReputation = users[user];
+                    db?.data[guildUuid]?.users[user]?.reputations.push(newReputation)
+                    // const memberAddress = db?.data[guildUuid]?.users[user].wallet
+                    const memberAddress = '0x962e39373596aAce8f34024bc50219A3459Bd9eB'
+                    await allotReputationOnchain(db?.data[guildUuid], memberAddress, newReputation)
                 }
                 logger.debug('Distribute Reputation done.')
 
@@ -295,7 +302,7 @@ export const checkEndRound = async (db, mutex, discord) => {
                 db.data[guildUuid].rounds.push(makeRound(
                     makeCore.makeRound(),
                     Moment(lastRound?.startDate)
-                        .add(lastRound?.config?.roundDuration, 'days')
+                        .add(lastRound?.config?.roundDuration, 'minutes')
                         .toISOString(),
                     '',
                     makeRoundConfigFromGuildConfig(db?.data[guildUuid]?.config)
@@ -321,3 +328,384 @@ export const checkEndRound = async (db, mutex, discord) => {
         return false
     }
 }
+
+const allotReputationOnchain = async (guild, memberAddress, reputation) => {
+    logger.debug(`Allot ${reputation} reputation tokens to ${memberAddress}...`)
+    const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL)
+    const wallet = new Wallet(process.env.DAOSCORD_PRIVATE_KEY, provider)
+    const tokenAddress = guild.erc20TokenAddress
+    const contract = new Contract(tokenAddress, erc20TokenAbi, wallet);
+    const tx = await contract.allot(memberAddress, reputation)
+    await tx.wait()
+    logger.debug('Allot reputation tokens done.')
+}
+
+const erc20TokenAbi = [
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "name_",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "symbol_",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "NotTransferable",
+        "type": "error"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "spender",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+            }
+        ],
+        "name": "Approval",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "previousOwner",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "OwnershipTransferred",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "value",
+                "type": "uint256"
+            }
+        ],
+        "name": "Transfer",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "account",
+                "type": "address"
+            }
+        ],
+        "name": "balanceOf",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "spender",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "subtractedValue",
+                "type": "uint256"
+            }
+        ],
+        "name": "decreaseAllowance",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "spender",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "addedValue",
+                "type": "uint256"
+            }
+        ],
+        "name": "increaseAllowance",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "name",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [
+            {
+                "internalType": "uint8",
+                "name": "",
+                "type": "uint8"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "transfer",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "transferFrom",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "approve",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "spender",
+                "type": "address"
+            }
+        ],
+        "name": "allowance",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "newBalance",
+                "type": "uint256"
+            }
+        ],
+        "name": "allot",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

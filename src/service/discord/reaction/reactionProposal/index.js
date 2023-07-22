@@ -105,7 +105,7 @@ export const startProposal = async (messageReaction, user, guildUuid, db, mutex)
 
             db.data[guildUuid].discordProposals[proposalId].startDate = startDate.toISOString()
             db.data[guildUuid].discordProposals[proposalId].proposalMessageId = proposalMessage.id
-            await createDaoProposal(db, mutex, guildUuid, proposalId, messageReaction?.message?.content, endDate)
+            await createDaoProposal(db, mutex, guildUuid, proposalId, messageReaction?.message?.content, endDate.toDate())
 
             await db.write()
             logger.debug('Update start proposal message and post proposal done.')
