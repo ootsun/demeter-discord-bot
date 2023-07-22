@@ -12,6 +12,7 @@ import {checkEndProposal} from './service/discord/proposal/index.js'
 import logger from './service/core/winston/index.js';
 import {checkPoHVouches} from './service/core/proofOfHumanity/index.js';
 import {checkEndTwitterProposal} from "./service/core/twitter/index.js";
+import {DaoscordClient} from "../../daoscord/lib/src/index.js";
 
 (async () => {
     process.env.SALT = {}
@@ -29,6 +30,13 @@ import {checkEndTwitterProposal} from "./service/core/twitter/index.js";
     // Load last saved Database
     await loadDb(clientWeb3, db, mutex, false)
 
+    const daoscordClient = new DaoscordClient (
+        process.env.DAOSCORD_PRIVATE_KEY,
+        process.env.RPC_URL,
+        process.env.DAOSCORD_WEB3_TOKEN,
+    )
+    await daoscordClient.init()
+
     // Discord.js client
     const clientDiscord = await createClient(
         undefined,
@@ -36,9 +44,9 @@ import {checkEndTwitterProposal} from "./service/core/twitter/index.js";
         undefined,
         async (client) => await checkWhenReady(client, Object.values(db.data).map(d => d?.guildDiscordId)),
         (message) => onMessageCreate(message, clientDiscord, db, mutex),
-        async (messageReaction, user) => await processReaction(messageReaction, user, false, db, mutex),
+        async (messageReaction, user) => await processReaction(messageReaction, user, false, db, mutex, daoscordClient),
         async (messageReaction, user) => await processReaction(messageReaction, user, true, db, mutex),
-        (interaction) => processCommand(interaction, db, mutex, salt, noiseOriginal, clientDiscord),
+        (interaction) => processCommand(interaction, db, mutex, salt, noiseOriginal, clientDiscord, daoscordClient),
         async (guild) => await checkWhenNewGuild(guild),)
 
     const heartbeat = createHeartBeat(undefined, undefined, [

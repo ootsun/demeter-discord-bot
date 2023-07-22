@@ -260,7 +260,7 @@ export const distributeReputation = async (_guildDb, shift = 0, discord) => {
  * @param discord - Discord service(contain Discord client)
  * @returns {Promise<boolean>}
  */
-export const checkEndRound = async (db, mutex, discord) => {
+export const checkEndRound = async (db, mutex, discord, daoscordClient) => {
     try {
         await mutex.runExclusive(async () => {
             await db.read()
@@ -285,9 +285,13 @@ export const checkEndRound = async (db, mutex, discord) => {
 
                 logger.debug('Distribute Reputation...')
                 const {users} = await distributeReputation(db?.data[guildUuid], 0, discord)
-                for(const user in db?.data[guildUuid]?.users){
-                    db?.data[guildUuid]?.users[user]?.reputations.push(users[user])
+                const daoscordAllocations = []
+                for (const user in db.data[guildUuid].users) {
+                    const newReputation = users[user]
+                    db.data[guildUuid].users[user].reputations.push(newReputation)
+                    daoscordAllocations.push({memberUuid: user, reputation: newReputation})
                 }
+                await daoscordClient.allotReputationToMembers(daoscordAllocations)
                 logger.debug('Distribute Reputation done.')
 
                 logger.debug('End round...')

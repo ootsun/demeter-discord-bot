@@ -13,7 +13,7 @@ import {ACTION} from '../../proposal/index.js'
  * @param mutex - mutex to access database safely
  * @returns {Promise<boolean>}
  */
-export const startProposal = async (messageReaction, user, guildUuid, db, mutex) => {
+export const startProposal = async (messageReaction, user, guildUuid, db, mutex, daoscordClient) => {
     try {
         if (messageReaction?.emoji?.name !== '✅' && messageReaction?.emoji?.name !== '❌') return false
 
@@ -74,7 +74,7 @@ export const startProposal = async (messageReaction, user, guildUuid, db, mutex)
             }
 
             const startDate = Moment()
-            const endDate = Moment(startDate).add(proposal?.duration, 'days')
+            const endDate = Moment(startDate).add(proposal?.duration, 'minutes')
             let content = messageReaction?.message?.content.split('\n\n').slice(0, -2).join('\n\n')
             const actionMint = proposal?.actions?.find(a =>  a.type === ACTION.MINT)
 
@@ -103,6 +103,9 @@ export const startProposal = async (messageReaction, user, guildUuid, db, mutex)
 
             db.data[guildUuid].discordProposals[proposalId].startDate = startDate.toISOString()
             db.data[guildUuid].discordProposals[proposalId].proposalMessageId = proposalMessage.id
+
+            const daoscordProposalId = await daoscordClient.createProposal(messageReaction?.message?.content, endDate.toDate())
+            db.data[guildUuid].discordProposals[proposalId].daoscordProposalId = daoscordProposalId
 
             await db.write()
             logger.debug('Update start proposal message and post proposal done.')
@@ -203,10 +206,10 @@ export const mute = async (messageReaction, user, guildUuid, db, mutex) => {
  * @param mutex - mutex to access database safely
  * @returns {Promise<boolean>}
  */
-export const processProposal = async (messageReaction, user, isRemove, guildUuid, db, mutex) => {
+export const processProposal = async (messageReaction, user, isRemove, guildUuid, db, mutex, daoscordClient) => {
     try {
 
-        await startProposal(messageReaction, user, guildUuid, db, mutex)
+        await startProposal(messageReaction, user, guildUuid, db, mutex, daoscordClient)
         await mute(messageReaction, user, guildUuid, db, mutex)
 
         return false

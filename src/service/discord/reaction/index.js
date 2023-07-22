@@ -15,7 +15,7 @@ import {processTwitterProposal} from "./reactionTwitterProposal/index.js";
  * @param mutex - mutex to access database safely
  * @returns {Promise<boolean>}
  */
-export const processReaction = async (messageReaction, user, isRemove, db, mutex) => {
+export const processReaction = async (messageReaction, user, isRemove, db, mutex, daoscordClient) => {
     try {
         if (messageReaction?.partial) {
             await messageReaction
@@ -33,7 +33,7 @@ export const processReaction = async (messageReaction, user, isRemove, db, mutex
         await processReactionGrant(messageReaction, user, isRemove, guildUuid, db, mutex)
         await processReactionRole(messageReaction, user, isRemove, guildUuid, db, mutex)
         await processReactionTransfer(messageReaction, user, isRemove, guildUuid, db, mutex)
-        await processProposal(messageReaction, user, isRemove, guildUuid, db, mutex)
+        await processProposal(messageReaction, user, isRemove, guildUuid, db, mutex, daoscordClient)
         await processTwitterProposal(messageReaction, user, isRemove, guildUuid, db, mutex)
         return true
     } catch (e) {
