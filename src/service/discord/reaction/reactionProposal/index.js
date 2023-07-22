@@ -3,8 +3,6 @@ import logger from '../../../core/winston/index.js'
 import {fetchReaction} from '../../util/helperDiscord.js'
 import {findUserUuidByDiscordId} from '../../user/index.js'
 import {ACTION} from '../../proposal/index.js'
-import {aragonTokenVotingClient} from "../../../core/aragon/aragon-client-provider.js";
-import {ProposalCreationSteps, VoteValues} from "@aragon/sdk-client";
 
 /**
  * Add/remove vote to start a proposal, check if there is enough reputation to start this proposal
@@ -105,7 +103,6 @@ export const startProposal = async (messageReaction, user, guildUuid, db, mutex)
 
             db.data[guildUuid].discordProposals[proposalId].startDate = startDate.toISOString()
             db.data[guildUuid].discordProposals[proposalId].proposalMessageId = proposalMessage.id
-            await createDaoProposal(db, mutex, guildUuid, proposalId, messageReaction?.message?.content, endDate)
 
             await db.write()
             logger.debug('Update start proposal message and post proposal done.')
@@ -113,7 +110,6 @@ export const startProposal = async (messageReaction, user, guildUuid, db, mutex)
 
         return true
     } catch (e) {
-        console.error(e)
         logger.error(e)
         return true
     }
@@ -219,59 +215,4 @@ export const processProposal = async (messageReaction, user, isRemove, guildUuid
         await messageReaction.message.channel.send('Something went wrong...')
         return true
     }
-}
-
-const createDaoProposal = async (db, mutex, guildUuid, proposalId, description, endDate) => {
-    logger.debug('Create DAO proposal...')
-    if(!endDate) {
-        endDate = new Date()
-        endDate.setMinutes(endDate.getMinutes() + 1)
-    }
-    const metadata = {
-        title: "My cool proposal",
-        summary: "This is a short description",
-        description: description,
-        resources: [],
-    };
-
-    const metadataUri = ''
-
-    // const metadataUri = await aragonTokenVotingClient.methods.pinMetadata(
-    //     metadata,
-    // );
-
-    const pluginAddress = db.data[guildUuid].tokenVotingPluginAddress;
-
-    const proposalParams = {
-        pluginAddress,
-        metadataUri,
-        actions: [],
-        startDate: new Date(),
-        endDate: endDate,
-        executeOnPass: false,
-        creatorVote: VoteValues.YES, // default NO, other options: ABSTAIN, YES. This saves gas for the voting transaction.
-    };
-
-    const steps = aragonTokenVotingClient.methods.createProposal(proposalParams);
-    for await (const step of steps) {
-        try {
-            switch (step.key) {
-                case ProposalCreationSteps.CREATING:
-                    console.log({ txHash: step.txHash });
-                    break;
-                case ProposalCreationSteps.DONE:
-                    console.log({ proposalId: step.proposalId });
-                    proposalId = step.proposalId
-                    await mutex.runExclusive(async () => {
-                        db.data[guildUuid].discordProposals[proposalId].aragonProposalId = step.proposalId
-                        db.data[guildUuid].discordProposals[proposalId].aragonMetadataUri = metadataUri
-                    })
-                    break;
-            }
-        } catch (err) {
-            console.error(err);
-        }
-    }
-    await db.write()
-    logger.debug('Create DAO proposal done.')
 }

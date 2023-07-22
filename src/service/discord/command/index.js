@@ -12,7 +12,6 @@ import {processUser} from './user/index.js'
 import {processGiveaway} from "./giveaway/index.js";
 import {processProofOfHumanity} from './proofOfHumanity/index.js';
 import {processTwitter} from './twitter/index.js';
-import {processDao} from "./dao/index.js";
 
 export const COMMANDS_NAME = {
     GUILD: {
@@ -810,36 +809,6 @@ export const COMMANDS = [
     },
     {
         name: COMMANDS_NAME.TWITTER_POST.name, type: 3
-    },
-    {
-        name: 'dao',
-        description: 'Manage the DAO',
-        options: [
-            {
-                type: ApplicationCommandOptionTypes.SUB_COMMAND,
-                name: 'create',
-                description: 'Create the dao',
-                options: [
-                    {
-                        type: ApplicationCommandOptionTypes.STRING,
-                        name: 'name',
-                        description: 'Name of the DAO'
-                    },
-                ]
-            },
-            {
-                type: ApplicationCommandOptionTypes.SUB_COMMAND,
-                name: 'start-proposal',
-                description: 'Start a proposal',
-                options: [
-                    {
-                        type: ApplicationCommandOptionTypes.STRING,
-                        name: 'name',
-                        description: 'Name of the DAO'
-                    },
-                ]
-            },
-        ]
     }
 ]
 
@@ -874,7 +843,6 @@ const processCommand = async (interaction, db, mutex, salt, noiseImg, client) =>
         if(await processGiveaway(interaction, guildUuid, db, mutex))return true
         if(await processProofOfHumanity(interaction, guildUuid, db, mutex))return true
         if(await processTwitter(interaction, guildUuid, db, mutex, client))return true
-        if(await processDao(interaction, guildUuid, db, mutex))return true
 
         if(await processButton(interaction, guildUuid, db, mutex, salt, noiseImg))return true
 
